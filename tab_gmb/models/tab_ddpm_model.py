@@ -4,6 +4,7 @@ import numpy as np
 import sys, os
 from .base_model import BaseGenerativeModel
 from synthcity.plugins import Plugins
+from synthcity.plugins.generic.plugin_ddpm import TabDDPMPlugin as DDPM
 from synthcity.plugins.core.dataloader import GenericDataLoader
 
 
@@ -82,8 +83,7 @@ class TabDDPMModel(BaseGenerativeModel):
             ddpm_params = self._prepare_ddpm_params()
             
             # Создаем синтезатор
-            self._synthesizer = Plugins().get(
-                "tab_ddpm",
+            self._synthesizer = DDPM(
                 **ddpm_params
             )
             
