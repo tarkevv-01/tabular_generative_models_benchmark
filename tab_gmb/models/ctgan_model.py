@@ -2,7 +2,7 @@ from typing import Dict, Any, List, Optional
 import pandas as pd
 import numpy as np
 from .base_model import BaseGenerativeModel
-from sdv.single_table import CTGANSynthesizer
+from sdv.single_table import CTGANSynthesizer as CTGAN
 from sdv.metadata import SingleTableMetadata
 
 class CTGANModel(BaseGenerativeModel):
@@ -83,9 +83,16 @@ class CTGANModel(BaseGenerativeModel):
         ctgan_params = self._prepare_ctgan_params()
         
         try:
-            self._synthesizer = CTGANSynthesizer(
+            self._synthesizer = CTGAN(
                 metadata=self._metadata,
-                **ctgan_params
+                discriminator_lr=ctgan_params['discriminator_lr'],
+                generator_lr=ctgan_params['generator_lr'],
+                batch_size=ctgan_params['batch_size'],
+                embedding_dim=ctgan_params['embedding_dim'],
+                generator_dim=ctgan_params['generator_dim'],
+                generator_decay=ctgan_params['generator_decay'],
+                discriminator_decay=ctgan_params['discriminator_decay'],
+                log_frequency=ctgan_params['log_frequency']
             )
             
             # Обучаем модель
@@ -109,8 +116,6 @@ class CTGANModel(BaseGenerativeModel):
         Returns:
             DataFrame с синтетическими данными
         """
-        self._validate_fitted()
-        self._validate_n_samples(n_samples)
         
         try:
             synthetic_data = self._synthesizer.sample(num_rows=n_samples)

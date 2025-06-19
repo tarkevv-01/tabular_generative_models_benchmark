@@ -86,10 +86,10 @@ class MultiMetricEvaluator:
         avg_metrics = self._aggregate_fold_results(fold_scores)
         
         # Нормализуем и взвешиваем метрики
-        normalized_metrics = self.normalize_metrics(avg_metrics)
+        #normalized_metrics = self.normalize_metrics(avg_metrics)
         
         # Вычисляем итоговый скор
-        final_score = self._compute_weighted_score(normalized_metrics)
+        final_score = self._compute_weighted_score(avg_metrics)
         
         return final_score
     
@@ -182,14 +182,15 @@ class MultiMetricEvaluator:
         normalized = {}
         
         for metric, value in metrics_dict.items():
-            if metric == 'c2st':
-                # C2ST: 0.5 - идеально, 1.0 - плохо
-                # Нормализуем к диапазону [0, 1], где 1 - лучше
-                normalized[metric] = 2.0 * (1.0 - value)  # Теперь 1.0 - лучше, 0.0 - хуже
-            else:
-                # Остальные метрики: 1.0 - идеально, 0.0 - плохо
-                # Уже в правильном диапазоне
-                normalized[metric] = value
+            # if metric == 'c2st':
+            #     # C2ST: 0.5 - идеально, 1.0 - плохо
+            #     # Нормализуем к диапазону [0, 1], где 1 - лучше
+            #     normalized[metric] = 2.0 * (1.0 - value)  # Теперь 1.0 - лучше, 0.0 - хуже
+            # else:
+            #     # Остальные метрики: 1.0 - идеально, 0.0 - плохо
+            #     # Уже в правильном диапазоне
+            #     normalized[metric] = value
+            normalized[metric] = value
         
         return normalized
     

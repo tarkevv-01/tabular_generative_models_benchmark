@@ -21,10 +21,10 @@ def evaluate_c2st(real_data: pd.DataFrame, synthetic_data: pd.DataFrame) -> floa
         ROC-AUC score (0.5 - идеально, 1.0 - плохо)
     """
     real_copy = real_data.copy()
-    if hasattr(synthetic, "dataframe"):
-        synthetic = synthetic.dataframe()
+    if hasattr(synthetic_data, "dataframe"):
+        synthetic_data = synthetic_data.dataframe()
 
-    synthetic_copy = synthetic.copy()
+    synthetic_copy = synthetic_data.copy()
 
     # Добавление меток
     real_copy['label'] = 1

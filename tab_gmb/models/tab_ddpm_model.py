@@ -2,6 +2,8 @@ from typing import Dict, Any, List, Optional
 import pandas as pd
 import numpy as np
 import sys, os
+import builtins
+import contextlib
 from .base_model import BaseGenerativeModel
 from synthcity.plugins import Plugins
 from synthcity.plugins.generic.plugin_ddpm import TabDDPMPlugin as DDPM
@@ -27,16 +29,14 @@ class TabDDPMModel(BaseGenerativeModel):
         
         # Установка значений по умолчанию
         default_params = {
-            'batch_size': 4096,
-            'lr': 7e-4,
+            'batch_size': 1024,
+            'lr': 0.002,
+            'weight_decay': 1e-4,
             'num_timesteps': 1000,
-            'n_layers_hidden': 4,
-            'n_units_hidden': 512,
-            'transformation_num_type': 'None',
-            'transformation_cat_type': 'None',
-            'n_iter': 1000,
-            'device': 'cpu',
-            'patience': 50
+
+            'n_layers_hidden': 3,  # Будет передано в model_params
+            'n_units_hidden': 256, # Будет передано в model_params
+            'dropout': 0.0,        # Будет передано в model_params
         }
         
         # Обновляем значения по умолчанию переданными параметрами
@@ -62,11 +62,13 @@ class TabDDPMModel(BaseGenerativeModel):
             cat_columns: Список категориальных колонок
             **kwargs: Дополнительные параметры обучения
         """
+        @contextlib.contextmanager
         def suppress_all_output():
-            """Контекстный менеджер для подавления всего вывода"""
             with open(os.devnull, "w") as devnull:
                 old_stdout = sys.stdout
                 old_stderr = sys.stderr
+                old_print = builtins.print
+                builtins.print = lambda *args, **kwargs: None
                 sys.stdout = devnull
                 sys.stderr = devnull
                 try:
@@ -74,6 +76,7 @@ class TabDDPMModel(BaseGenerativeModel):
                 finally:
                     sys.stdout = old_stdout
                     sys.stderr = old_stderr
+                    builtins.print = old_print
                     
         try:
             # Создаем dataloader для SynthCity
@@ -137,22 +140,36 @@ class TabDDPMModel(BaseGenerativeModel):
         # Параметры, которые напрямую передаются в TabDDPM
         ddpm_params = {}
         
+        # Параметры модели, которые должны быть в model_params
+        model_params = {}
+        
         # Соответствие наших параметров параметрам SynthCity TabDDPM
-        param_mapping = {
+        direct_param_mapping = {
             'batch_size': 'batch_size',
             'lr': 'lr',
+            'weight_decay': 'weight_decay',
             'num_timesteps': 'num_timesteps',
-            'n_layers_hidden': 'n_layers_hidden',
-            'n_units_hidden': 'n_units_hidden',
-            'transformation_num_type': 'transformation_num_type',
-            'transformation_cat_type': 'transformation_cat_type',
-            'n_iter': 'n_iter',
-            'device': 'device',
-            'patience': 'patience'
         }
         
-        for our_param, synthcity_param in param_mapping.items():
+        # Параметры, которые должны быть в model_params
+        model_param_keys = {
+            'n_layers_hidden',
+            'n_units_hidden', 
+            'dropout'
+        }
+        
+        # Заполняем прямые параметры
+        for our_param, synthcity_param in direct_param_mapping.items():
             if our_param in self.hyperparameters:
                 ddpm_params[synthcity_param] = self.hyperparameters[our_param]
+        
+        # Заполняем model_params
+        for param_key in model_param_keys:
+            if param_key in self.hyperparameters:
+                model_params[param_key] = self.hyperparameters[param_key]
+        
+        # Добавляем model_params в основные параметры
+        if model_params:
+            ddpm_params['model_params'] = model_params
         
         return ddpm_params
