@@ -96,11 +96,10 @@ class CTGANModel(BaseGenerativeModel):
             )
             
             # Обучаем модель
-            print(f"Начинается обучение CTGAN на {len(data)} образцах...")
             self._synthesizer.fit(data)
             
             self.is_fitted = True
-            print("Обучение CTGAN завершено успешно.")
+
             
         except Exception as e:
             raise RuntimeError(f"Ошибка при обучении CTGAN: {str(e)}")

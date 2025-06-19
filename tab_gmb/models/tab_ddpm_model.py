@@ -90,14 +90,11 @@ class TabDDPMModel(BaseGenerativeModel):
                 **ddpm_params
             )
             
-            print(f"Начинается обучение TabDDPM на {len(data)} образцах...")
-            
             # Обучаем модель
             with suppress_all_output():
                 self._synthesizer.fit(self._dataloader)
             
             self.is_fitted = True
-            print("Обучение TabDDPM завершено успешно.")
             
         except Exception as e:
             raise RuntimeError(f"Ошибка при обучении TabDDPM: {str(e)}")

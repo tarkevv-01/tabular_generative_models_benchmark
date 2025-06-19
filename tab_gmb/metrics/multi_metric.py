@@ -32,7 +32,7 @@ class MultiMetricEvaluator:
             if metric not in self.weights:
                 self.weights[metric] = 1.0
     
-    def evaluate(self, model, hyperparameters: Dict[str, Any], dataset, n_folds: int = 5) -> float:
+    def evaluate(self, model, dataset, n_folds: int = 5) -> float:
         """
         Оценка модели с заданными гиперпараметрами через кросс-валидацию.
         
@@ -45,8 +45,6 @@ class MultiMetricEvaluator:
         Returns:
             Агрегированная метрика качества
         """
-        # Устанавливаем гиперпараметры
-        model.set_hyperparameters(hyperparameters)
         
         # Инициализируем кросс-валидацию
         kfold = KFold(n_splits=n_folds, shuffle=True, random_state=42)
@@ -56,8 +54,8 @@ class MultiMetricEvaluator:
         for fold_idx, (train_idx, val_idx) in enumerate(kfold.split(dataset.data)):
             try:
                 # Разделяем данные на train/val
-                train_data = dataset.data.iloc[train_idx].copy()
-                val_data = dataset.data.iloc[val_idx].copy()
+                train_data = dataset.get_data_by_features(True).iloc[train_idx].copy()
+                val_data = dataset.get_data_by_features(True).iloc[val_idx].copy()
                 
                 # Обучаем модель на train
                 model.fit(
@@ -91,7 +89,7 @@ class MultiMetricEvaluator:
         # Вычисляем итоговый скор
         final_score = self._compute_weighted_score(avg_metrics)
         
-        return final_score
+        return final_score, avg_metrics
     
     def _compute_fold_metrics(self, train_data: pd.DataFrame, 
                              val_data: pd.DataFrame, 
@@ -207,19 +205,17 @@ class MultiMetricEvaluator:
         total_weighted_score = 0.0
         total_weight = 0.0
         
-        #Временная строка
-        print(normalized_metrics.items())
         for metric, value in normalized_metrics.items():
             #weight = abs(self.weights[metric])  # Используем абсолютное значение веса
             weight = self.weights[metric]
             total_weighted_score += weight * value
             total_weight += weight
         
-        return total_weighted_score
-        if total_weight == 0:
-            return 0.0
+        # if total_weight == 0:
+        #     return 0.0
         
-        # Возвращаем негативный скор для минимизации (так как алгоритмы ищут минимум)
-        return -total_weighted_score / total_weight
+        # # Возвращаем негативный скор для минимизации (так как алгоритмы ищут минимум)
+        # return -total_weighted_score / total_weight
+        return total_weighted_score
     
     
