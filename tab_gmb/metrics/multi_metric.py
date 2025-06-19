@@ -110,6 +110,10 @@ class MultiMetricEvaluator:
         metrics_values = {}
         
         for metric in self.metrics:
+            cat_columns = dataset.cat_columns.copy()
+            if dataset.task_type == 'classification':
+                cat_columns.append(dataset.target_column)
+
             try:
                 if metric == 'c2st':
                     metrics_values[metric] = evaluate_c2st(val_data, synthetic_data)
@@ -117,17 +121,17 @@ class MultiMetricEvaluator:
                 elif metric == 'ml_efficacy':
                     metrics_values[metric] = evaluate_ml_efficacy(
                         train_data, synthetic_data, val_data, 
-                        dataset.target_column, dataset.task_type
+                        cat_columns, dataset.target_column, dataset.task_type
                     )
                     
                 elif metric == 'pair':
                     metrics_values[metric] = evaluate_pair(
-                        val_data, synthetic_data, dataset.cat_columns
+                        val_data, synthetic_data, cat_columns 
                     )
                     
                 elif metric == 'shape':
                     metrics_values[metric] = evaluate_shape(
-                        val_data, synthetic_data, dataset.cat_columns
+                        val_data, synthetic_data, cat_columns 
                     )
                     
             except Exception as e:
