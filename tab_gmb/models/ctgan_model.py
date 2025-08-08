@@ -35,10 +35,11 @@ class CTGANModel(BaseGenerativeModel):
             'log_frequency': True,
             'transformation_num_type': 'CDF',
             'transformation_cat_type': 'OHE',
+            'pac': 10,
             'epochs': 300,
             'verbose': False
         }
-        
+
         # Обновляем значения по умолчанию переданными параметрами
         for key, value in default_params.items():
             if key not in self.hyperparameters:
@@ -89,10 +90,13 @@ class CTGANModel(BaseGenerativeModel):
                 generator_lr=ctgan_params['generator_lr'],
                 batch_size=ctgan_params['batch_size'],
                 embedding_dim=ctgan_params['embedding_dim'],
+                discriminator_dim=ctgan_params['discriminator_dim'],
                 generator_dim=ctgan_params['generator_dim'],
                 generator_decay=ctgan_params['generator_decay'],
                 discriminator_decay=ctgan_params['discriminator_decay'],
-                log_frequency=ctgan_params['log_frequency']
+                log_frequency=ctgan_params['log_frequency'],
+                pac=ctgan_params['pac'],
+                epochs=ctgan_params['epochs']
             )
             
             # Обучаем модель
@@ -137,6 +141,7 @@ class CTGANModel(BaseGenerativeModel):
         # Соответствие наших параметров параметрам SDV
         param_mapping = {
             'epochs': 'epochs',
+            'pac': 'pac',
             'batch_size': 'batch_size',
             'discriminator_lr': 'discriminator_lr',
             'generator_lr': 'generator_lr',
